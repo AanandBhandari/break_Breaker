@@ -15,10 +15,16 @@ const config = {
         update: update
     }
 };
-let brick;
+let bricks0;
+let bricks1;
+let bricks2;
 let paddle;
 let cursors;
 let ball;
+let scoreText;
+let gameOverText;
+let score=0;
+let over=0;
 let game = new Phaser.Game(config);
  function preload() {
      this.load.image('paddle', 'assets/PNG/Webp.net-resizeimage.png');
@@ -31,21 +37,26 @@ let game = new Phaser.Game(config);
      ball.setData('onPaddle', true);
      paddle = this.physics.add.image(400, 550, 'paddle').setCollideWorldBounds(true).setImmovable();
      this.physics.add.collider(ball, paddle, hitPaddle, null, this);
-     bricks0 = this.physics.add.staticGroup({
-         key: 'brick',
-         repeat: 7,
-         setXY: { x: 150, y: 150, stepX: 78 }
-     });
-     bricks1 = this.physics.add.staticGroup({
-         key: 'brick',
-         repeat: 4,
-         setXY: { x: 250, y: 200, stepX: 98 }
-     });
-     bricks2 = this.physics.add.staticGroup({
-         key: 'brick',
-         repeat: 6,
-         setXY: { x: 50, y: 250, stepX: 118 }
-     });
+    //  understand physics.add properties like static,dynamic,image,sprite
+    let createBricks = ()=> {
+        bricks0 = this.physics.add.staticGroup({
+            key: 'brick',
+            repeat: 7,
+            setXY: { x: 150, y: 150, stepX: 78 }
+        });
+        bricks1 = this.physics.add.staticGroup({
+            key: 'brick',
+            repeat: 4,
+            setXY: { x: 250, y: 200, stepX: 98 }
+        });
+        bricks2 = this.physics.add.staticGroup({
+            key: 'brick',
+            repeat: 6,
+            setXY: { x: 50, y: 250, stepX: 118 }
+        });
+    }
+    createBricks();
+     
      
      this.physics.add.collider(ball, bricks0, hitBrick, null, this);
      this.physics.add.collider(ball, bricks1, hitBrick, null, this)
@@ -53,6 +64,8 @@ let game = new Phaser.Game(config);
 
     //  inputs
      cursors = this.input.keyboard.createCursorKeys();
+     scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
+     
      
  }
  function update() {
@@ -70,7 +83,18 @@ let game = new Phaser.Game(config);
          }
      }
      if (ball.y > 600) {
-         resetBall();
+         over++;
+         if (over > 1) {
+             over = 0;
+             console.log(over + "inside if");
+             this.add.text(400, 250, 'GAMEOVER', { fontSize: '32px', fill: '#fff' });
+             this.physics.pause();
+         }else {
+             paddle.x = 400;
+             paddle.y = 550;
+             resetBall();
+         }
+         
      }
  }
  function hitPaddle(ball,paddle) {
@@ -89,8 +113,24 @@ let game = new Phaser.Game(config);
      }
  }
 
- function hitBrick(ball,bricks) {
-     bricks.disableBody(true, true);
+ function hitBrick(ball,brick) {
+     brick.disableBody(true, true);
+     score += 10;
+     scoreText.setText('Score: ' + score);
+    //  if (bricks0.countActive(true) && bricks1.countActive(true) && bricks2.countActive(true) === 0) {
+    //     //  resetLevel();
+    //     console.log('helloworld');
+    //      this.physics.pause();
+    //  }
+    if (bricks0.countActive(true)===0) {
+        if(bricks1.countActive(true)===0){
+            if (bricks2.countActive(true)===0) {
+                console.log('helloworld');
+                this.physics.pause(); 
+                
+            }
+        }
+    }
  }
 
 function resetBall () {
@@ -98,3 +138,11 @@ function resetBall () {
     ball.setPosition(paddle.x, 500);
     ball.setData('onPaddle', true);
 }
+//  function resetLevel() {
+//      resetBall();
+//     //  bricks.children.each(function (brick) {
+//     //     brick.enableBody(false, 0, 0, true, true);
+//     // });
+//     Console.log('helloworld');
+//      createBricks();
+//  }
